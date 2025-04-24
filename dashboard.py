@@ -13,6 +13,7 @@ from sklearn.preprocessing import StandardScaler
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from streamlit_elements import elements, mui, html
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -59,50 +60,170 @@ except Exception as e:
     st.sidebar.error(f"Erro ao carregar os dados: {e}")
     st.stop()
 
-# Filtragem global no sidebar
-st.sidebar.markdown("---")
-st.sidebar.header("Filtros Globais")
+if 'produto_correlacao' not in st.session_state:
+    # Default to the first product in the dataset
+    produtos_disponiveis = sorted(df_consolidado['Produto'].unique())
+    if produtos_disponiveis:
+        st.session_state.produto_correlacao = produtos_disponiveis[0]
+    else:
+        st.session_state.produto_correlacao = None
 
-# Filtro de produtos
-produtos = sorted(df_consolidado['Produto'].unique())
-produto_selecionado = st.sidebar.multiselect(
-    "Selecione os produtos:",
-    produtos,
-    default=[]
-)
+if 'modo_visualizacao' not in st.session_state:
+    st.session_state.modo_visualizacao = "Ano Único"
 
-# Filtro de mesorregiões
-mesorregioes = sorted(df_consolidado['Mesorregião'].unique())
-mesorregiao_selecionada = st.sidebar.multiselect(
-    "Selecione as mesorregiões:",
-    mesorregioes,
-    default=[]
-)
+if 'ano_selecionado' not in st.session_state:
+    anos_disponiveis = sorted([int(ano) for ano in df_consolidado['Ano'].unique()])
+    if anos_disponiveis:
+        # Set default to 2022 or the latest year
+        ano_padrao = 2022 if 2022 in anos_disponiveis else anos_disponiveis[-1]
+        st.session_state.ano_selecionado = ano_padrao
+    else:
+        st.session_state.ano_selecionado = None
 
-# Filtro de período
-anos = sorted(df_consolidado['Ano'].unique())
-periodo = st.sidebar.slider(
-    "Selecione o período:",
-    min_value=min(anos),
-    max_value=max(anos),
-    value=(min(anos), max(anos))
-)
+if 'periodo_selecionado' not in st.session_state:
+    st.session_state.periodo_selecionado = None
 
-# Aplicar filtros ao dataframe
-if produto_selecionado:
-    df_filtrado = df_consolidado[df_consolidado['Produto'].isin(produto_selecionado)]
+# Controls for correlation page
+if pagina == "3. Correlações":
+    st.sidebar.markdown("""
+    <div style="border:3px solid #000000; border-radius:1px; padding:1px; margin:20px ;">
+<center><h4 style="color:#00000; margin-top:1">Controles de Correlação</h4></center>
+
+    """, unsafe_allow_html=True)
+    
+    # Seleção de produto - use df_consolidado here, not df_filtrado
+    produto_correlacao = st.sidebar.selectbox(
+        "Selecione um produto",
+        sorted(df_consolidado['Produto'].unique()),
+        index=list(sorted(df_consolidado['Produto'].unique())).index(st.session_state.produto_correlacao) 
+            if st.session_state.produto_correlacao in sorted(df_consolidado['Produto'].unique()) else 0,
+        key="produto_correlacao_select"
+    )
+    st.session_state.produto_correlacao = produto_correlacao
+    
+    # Modo de visualização
+    modo_visualizacao = st.sidebar.radio(
+        "Modo de visualização:",
+        ["Ano Único", "Agregado 4 Anos", "Todos os Anos"],
+        index=["Ano Único", "Agregado 4 Anos", "Todos os Anos"].index(st.session_state.modo_visualizacao)
+            if st.session_state.modo_visualizacao in ["Ano Único", "Agregado 4 Anos", "Todos os Anos"] else 0,
+        key="modo_visualizacao_radio"
+    )
+    st.session_state.modo_visualizacao = modo_visualizacao
+    
+    if modo_visualizacao == "Ano Único":
+        # Get the data for the selected product
+        dados_produto = df_consolidado[df_consolidado['Produto'] == produto_correlacao]
+        
+        # Create a list of available years as Python integers (not NumPy integers)
+        anos_disponiveis = sorted([int(ano) for ano in dados_produto['Ano'].unique()])
+        
+        if anos_disponiveis:
+            # Set default year (2022 if available, otherwise the most recent year)
+            ano_padrao = 2022 if 2022 in anos_disponiveis else anos_disponiveis[-1]
+            
+            # Find the index of the current year or default year
+            try:
+                atual_ano = st.session_state.ano_selecionado if st.session_state.ano_selecionado in anos_disponiveis else ano_padrao
+                indice_ano = anos_disponiveis.index(atual_ano)
+            except ValueError:
+                indice_ano = 0
+            
+            # Create the year selection dropdown
+            ano_selecionado = st.sidebar.selectbox(
+                "Selecione o ano:",
+                anos_disponiveis,
+                index=indice_ano,
+                key="ano_selecionado_select" 
+            )
+            st.session_state.ano_selecionado = ano_selecionado
+        else:
+            st.sidebar.warning("Não há dados disponíveis para este produto.")
+        
+    elif modo_visualizacao == "Agregado 4 Anos":
+        dados_produto = df_consolidado[df_consolidado['Produto'] == produto_correlacao]
+        
+        if not dados_produto.empty:
+            # Calcular períodos
+            min_ano = int(dados_produto['Ano'].min())
+            max_ano = int(dados_produto['Ano'].max())
+            
+            periodos = []
+            inicio = min_ano
+            while inicio <= max_ano:
+                fim = min(inicio + 3, max_ano)
+                periodos.append(f"{inicio}-{fim}")
+                inicio = fim + 1
+            
+            if periodos:
+                # Find current period or default to the most recent
+                atual_periodo = st.session_state.periodo_selecionado if st.session_state.periodo_selecionado in periodos else periodos[-1]
+                try:
+                    indice_periodo = periodos.index(atual_periodo)
+                except ValueError:
+                    indice_periodo = len(periodos) - 1
+                
+                periodo_selecionado = st.sidebar.selectbox(
+                    "Selecione o período",
+                    periodos,
+                    index=indice_periodo,
+                    key="periodo_selecionado_select"
+                )
+                st.session_state.periodo_selecionado = periodo_selecionado
+            
+    
+    st.sidebar.markdown("</div>", unsafe_allow_html=True)  # Close the colored div
+
+# Global filters for other pages
 else:
+    with st.sidebar.expander("Filtros de Cultura e Região", expanded=False):
+        # Filtro de período (mais compacto)
+        anos = sorted(df_consolidado['Ano'].unique())
+        periodo = st.sidebar.slider(
+            "Selecione o período:",
+            min_value=min(anos),
+            max_value=max(anos),
+            value=(min(anos), max(anos))
+        )
+        
+        # Filtro de produtos com busca
+        produtos = sorted(df_consolidado['Produto'].unique())
+        produto_selecionado = st.multiselect(
+            "Produtos:",
+            produtos,
+            default=[]
+        )
+        
+        # Filtro de mesorregiões com busca
+        mesorregioes = sorted(df_consolidado['Mesorregião'].unique())
+        mesorregiao_selecionada = st.multiselect(
+            "Mesorregiões:",
+            mesorregioes,
+            default=[]
+        )
+
+if pagina == "3. Correlações":
+    # For correlation page, we'll create df_filtrado in the main section
+    # based on the sidebar controls for this specific page
     df_filtrado = df_consolidado.copy()
 
-if mesorregiao_selecionada:
-    df_filtrado = df_filtrado[df_filtrado['Mesorregião'].isin(mesorregiao_selecionada)]
+else:
+    # For other pages, use the global filters
+    if produto_selecionado:
+        df_filtrado = df_consolidado[df_consolidado['Produto'].isin(produto_selecionado)]
+    else:
+        df_filtrado = df_consolidado.copy()
 
-df_filtrado = df_filtrado[(df_filtrado['Ano'] >= periodo[0]) & (df_filtrado['Ano'] <= periodo[1])]
+    if mesorregiao_selecionada:
+        df_filtrado = df_filtrado[df_filtrado['Mesorregião'].isin(mesorregiao_selecionada)]
 
-# Verificar se o dataframe filtrado tem dados
-if df_filtrado.empty:
+    df_filtrado = df_filtrado[(df_filtrado['Ano'] >= periodo[0]) & (df_filtrado['Ano'] <= periodo[1])]
+
+# Verificar se o dataframe filtrado tem dados (except for page 3 which has its own check)
+if df_filtrado.empty and pagina != "3. Correlações":
     st.warning("Nenhum dado encontrado com os filtros selecionados. Por favor, ajuste os filtros.")
     st.stop()
+
 
 main_container = st.container()
 with main_container:
@@ -247,10 +368,11 @@ with main_container:
         st.plotly_chart(fig, use_container_width=True)
 
     elif pagina == "Mapas":
-        powerbi_url = "https://app.powerbi.com/view?r=eyJrIjoiMWRhOWY4NzItYzMwNi00Yzk0LWIxZmYtNTMyYzlhZDUzM2U4IiwidCI6ImMxNzdmNmRkLWY1MTUtNDRlNy05ZmMzLTZiNzZjODdhZmViMCJ9"
+        powerbi_url = "https://app.powerbi.com/view?r=eyJrIjoiMWRhOWY4NzItYzMwNi00Yzk0LWIxZmYtNTMyYzlhZDUzM2U4IiwidCI6ImMxNzdmNmRkLWY1MTUtNDRlNy05ZmMzLTZiNzZjODdhZmViMCJ9&pageName=e52d3bda5d537e68a452"
 
         # Embed in an iframe
         components.iframe(powerbi_url, height=600, width=600)
+    
     # 1. Tendências Temporais    
     elif pagina == "1. Tendências Temporais":
         st.header("Análise de Tendências Temporais")
@@ -464,8 +586,8 @@ with main_container:
                 .background_gradient(cmap='viridis', subset=['Rendimento_KgPorHectare'])
             )
         
-        # Mapa de calor da produtividade
-        st.subheader("Mapa de Calor da Produtividade")
+        # Mapa de calor do rendimento
+        st.subheader("Mapa de Calor do Rendimento por Mesorregião e Produto")
         
         # Opções para o mapa de calor
         mapa_opcao = st.radio(
@@ -660,214 +782,186 @@ with main_container:
         Também inclui análises de correlação com variáveis climáticas.
         """)
         
-        # Após a seleção do produto para análise
-        produto_correlacao = st.selectbox(
-            "Selecione um produto para análise de correlações:",
-            sorted(df_filtrado['Produto'].unique())
-        )
-
-        # Adicionar opção para visualizar dados agregados ou de um ano específico
-        modo_visualizacao = st.radio(
-            "Modo de visualização:",
-            ["Dados de um ano específico", "Dados agregados por períodos de 4 anos", "Dados agregados de todos os anos"]
-        )
-
-        # Filtrar dados do produto selecionado
-        dados_produto = df_filtrado[df_filtrado['Produto'] == produto_correlacao]
-
-        # Configurar dados com base no modo de visualização selecionado
-        if modo_visualizacao == "Dados de um ano específico":
-            # Obter anos disponíveis para o produto selecionado
-            anos_disponiveis = sorted(dados_produto['Ano'].unique())
-            # Definir o ano padrão como 2022 ou o mais recente disponível
-            ano_padrao = 2022 if 2022 in anos_disponiveis else anos_disponiveis[-1]
-            # Adicionar seletor de ano
-            ano_selecionado = st.selectbox(
-                "Selecione o ano para análise:",
-                anos_disponiveis,
-                index=anos_disponiveis.index(ano_padrao) if ano_padrao in anos_disponiveis else len(anos_disponiveis)-1
-            )
-            # Filtrar dados para o ano selecionado
-            dados_produto = dados_produto[dados_produto['Ano'] == ano_selecionado]
+        # Main content area - using the controls from the sidebar
+        try:
+            # Get values from session state
+            produto_correlacao = st.session_state.produto_correlacao
+            modo_visualizacao = st.session_state.modo_visualizacao
             
-            # Atualizar título para incluir o ano
-            titulo_area_rend = f'Relação entre Área Plantada e Rendimento - {produto_correlacao} ({ano_selecionado})'
-            titulo_valor_rend = f'Relação entre Valor da Produção e Rendimento - {produto_correlacao} ({ano_selecionado})'
-
-        elif modo_visualizacao == "Dados agregados por períodos de 4 anos":
-            # Calcular o intervalo de anos disponíveis
-            min_ano = dados_produto['Ano'].min()
-            max_ano = dados_produto['Ano'].max()
+            # For correlation page only filter by product, not by the global filters
+            dados_produto = df_consolidado[df_consolidado['Produto'] == produto_correlacao]
+            if dados_produto.empty:
+                st.warning(f"Não há dados disponíveis para {produto_correlacao}.")
+                st.stop()
             
-            # Criar períodos com o primeiro sendo de 5 anos e os demais de 4 anos
-            periodos = []
-            
-            # Primeiro período de 5 anos
-            inicio = min_ano
-            fim = inicio + 4  # Período de 5 anos (ex: 1994-1998)
-            periodos.append(f"{inicio}-{fim}")
-            
-            # Continuar com períodos de 4 anos
-            inicio = fim + 1
-            while inicio <= max_ano:
-                fim = min(inicio + 3, max_ano)  # Períodos de 4 anos
-                periodos.append(f"{inicio}-{fim}")
-                inicio = fim + 1
-            
-            # Adicionar seletor de período
-            periodo_selecionado = st.selectbox(
-                "Selecione o período para análise:",
-                periodos,
-                index=len(periodos)-1  # Selecionar o período mais recente por padrão
-            )
-            
-            # Extrair anos de início e fim
-            inicio_periodo, fim_periodo = map(int, periodo_selecionado.split('-'))
-            
-            # Filtrar dados para o período selecionado
-            dados_produto = dados_produto[(dados_produto['Ano'] >= inicio_periodo) & (dados_produto['Ano'] <= fim_periodo)]
-            
-            # Atualizar títulos para incluir o período
-            titulo_area_rend = f'Relação entre Área Plantada e Rendimento - {produto_correlacao} ({periodo_selecionado})'
-            titulo_valor_rend = f'Relação entre Valor da Produção e Rendimento - {produto_correlacao} ({periodo_selecionado})'
-
-        else:  # "Dados agregados de todos os anos"
-            # Títulos para dados agregados
-            titulo_area_rend = f'Relação entre Área Plantada e Rendimento - {produto_correlacao} (Todos os anos)'
-            titulo_valor_rend = f'Relação entre Valor da Produção e Rendimento - {produto_correlacao} (Todos os anos)'
-
-        # Continuar com o resto do código, usando os títulos atualizados nos gráficos
-        # Criar duas colunas
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            # Correlação entre área plantada e rendimento
-            st.subheader("Área Plantada vs. Rendimento")
-            
-            fig = px.scatter(
-                dados_produto,
-                x='Area_Plantada_Hectares',
-                y='Rendimento_KgPorHectare',
-                color='Mesorregião' if len(dados_produto['Mesorregião'].unique()) <= 10 else None,
-                opacity=0.7,
-                trendline="ols",
-                labels={
-                    'Area_Plantada_Hectares': 'Área Plantada (Hectares)',
-                    'Rendimento_KgPorHectare': 'Rendimento (Kg/Hectare)'
-                },
-                title=f'Relação entre Área Plantada e Rendimento - {produto_correlacao}',
-                height=500
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Calcular o coeficiente de correlação
-            corr_area_rend = dados_produto['Area_Plantada_Hectares'].corr(dados_produto['Rendimento_KgPorHectare'])
-            st.metric("Coeficiente de Correlação", f"{corr_area_rend:.3f}")
-            
-            # Interpretar a correlação
-            if abs(corr_area_rend) < 0.3:
-                st.info("Correlação fraca: Pouca evidência de economias de escala.")
-            elif corr_area_rend >= 0.3:
-                st.success("Correlação positiva: Há evidências de economias de escala.")
-            else:
-                st.error("Correlação negativa: Áreas maiores tendem a ter menor rendimento.")
-        
-        with col2:
-            # Correlação entre valor da produção e rendimento
-            st.subheader("Valor da Produção vs. Rendimento")
-            
-            fig = px.scatter(
-                dados_produto,
-                x='Valor_Produzido_Mil_Reais',
-                y='Rendimento_KgPorHectare',
-                color='Mesorregião' if len(dados_produto['Mesorregião'].unique()) <= 10 else None,
-                opacity=0.7,
-                trendline="ols",
-                labels={
-                    'Valor_Produzido_Mil_Reais': 'Valor da Produção (Mil Reais)',
-                    'Rendimento_KgPorHectare': 'Rendimento (Kg/Hectare)'
-                },
-                title=f'Relação entre Valor da Produção e Rendimento - {produto_correlacao}',
-                height=500
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Calcular o coeficiente de correlação
-            corr_valor_rend = dados_produto['Valor_Produzido_Mil_Reais'].corr(dados_produto['Rendimento_KgPorHectare'])
-            st.metric("Coeficiente de Correlação", f"{corr_valor_rend:.3f}")
-            
-            # Interpretar a correlação
-            if abs(corr_valor_rend) < 0.3:
-                st.info("Correlação fraca: Pouca relação entre valor e rendimento.")
-            elif corr_valor_rend >= 0.3:
-                st.success("Correlação positiva: Maior rendimento está associado a maior valor.")
-            else:
-                st.error("Correlação negativa: Relação inversa entre valor e rendimento.")
-        
-        # Correlações com variáveis climáticas
-        st.subheader("Correlações com Variáveis Climáticas")
-        
-        # Verificar se há variáveis climáticas disponíveis
-        var_climaticas = [col for col in df_filtrado.columns if col in [
-            'precipitacao_total_anual', 'radiacao_global_media', 
-            'temperatura_bulbo_media', 'vento_velocidade_media'
-        ]]
-        
-        if var_climaticas:
-            # Criar matriz de correlação
-            cols_analise = var_climaticas + ['Rendimento_KgPorHectare']
-            matriz_corr = dados_produto[cols_analise].corr()
-            
-            # Renomear colunas para melhor visualização
-            matriz_corr.columns = [
-                col.replace('_', ' ').title() for col in matriz_corr.columns
-            ]
-            matriz_corr.index = matriz_corr.columns
-            
-            # Criar mapa de calor
-                        # Mask upper triangle
-            matriz_corr_masked = matriz_corr.copy()
-            matriz_corr_masked.values[np.triu_indices_from(matriz_corr, k=1)] = np.nan
-
-            fig = px.imshow(
-                matriz_corr_masked,
-                text_auto='.3f',
-                labels=dict(x="Variável", y="Variável", color="Correlação"),
-                x=matriz_corr.columns,
-                y=matriz_corr.index,
-                color_continuous_scale='RdBu_r',
-                color_continuous_midpoint=0,
-                title=f'Matriz de Correlação - {produto_correlacao}'
-            )
-
-            fig.update_layout(height=600)
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Mostrar interpretações para cada variável climática
-            st.subheader("Interpretação de Correlações Climáticas com Rendimento")
-            
-            for var in var_climaticas:
-                var_nome = var.replace('_', ' ').title()
-                corr_valor = matriz_corr.loc['Rendimento Kgporhectare', var_nome]
+            # Processar dados com base no modo de visualização
+            if modo_visualizacao == "Ano Único":
+                ano_selecionado = st.session_state.ano_selecionado
+                dados_produto = dados_produto[dados_produto['Ano'] == ano_selecionado]
                 
-                if abs(corr_valor) < 0.3:
-                    intensidade = "fraca"
-                    icon = "ℹ️"
-                elif abs(corr_valor) < 0.7:
-                    intensidade = "moderada"
-                    icon = "⚠️" if corr_valor < 0 else "✅"
+                if dados_produto.empty:
+                    st.warning(f"Não há dados disponíveis para {produto_correlacao} no ano {ano_selecionado}.")
+                    st.stop()
+                
+                titulo_area_rend = f'Relação entre Área Plantada e Rendimento - {produto_correlacao} ({ano_selecionado})'
+                titulo_valor_rend = f'Relação entre Valor da Produção e Rendimento - {produto_correlacao} ({ano_selecionado})'
+                
+            elif modo_visualizacao == "Agregado 4 Anos":
+                periodo_selecionado = st.session_state.periodo_selecionado
+                try:
+                    inicio_periodo, fim_periodo = map(int, periodo_selecionado.split('-'))
+                    
+                    dados_produto = dados_produto[(dados_produto['Ano'] >= inicio_periodo) & (dados_produto['Ano'] <= fim_periodo)]
+                    
+                    if dados_produto.empty:
+                        st.warning(f"Não há dados disponíveis para {produto_correlacao} no período {periodo_selecionado}.")
+                        st.stop()
+                    
+                    titulo_area_rend = f'Relação entre Área Plantada e Rendimento - {produto_correlacao} ({periodo_selecionado})'
+                    titulo_valor_rend = f'Relação entre Valor da Produção e Rendimento - {produto_correlacao} ({periodo_selecionado})'
+                except:
+                    st.error(f"Formato de período inválido: {periodo_selecionado}")
+                    st.stop()
+                    
+            else:  # "Todos os Anos"
+                titulo_area_rend = f'Relação entre Área Plantada e Rendimento - {produto_correlacao} (Todos os anos)'
+                titulo_valor_rend = f'Relação entre Valor da Produção e Rendimento - {produto_correlacao} (Todos os anos)'
+            
+            # Create two columns for the visualizations
+            col1a, col2a = st.columns(2)
+            
+            with col1a:
+                # Correlação entre área plantada e rendimento
+                st.subheader("Área Plantada vs. Rendimento")
+                
+                fig = px.scatter(
+                    dados_produto,
+                    x='Area_Plantada_Hectares',
+                    y='Rendimento_KgPorHectare',
+                    color='Mesorregião' if len(dados_produto['Mesorregião'].unique()) <= 10 else None,
+                    opacity=0.7,
+                    trendline="ols",
+                    labels={
+                        'Area_Plantada_Hectares': 'Área Plantada (Hectares)',
+                        'Rendimento_KgPorHectare': 'Rendimento (Kg/Hectare)'
+                    },
+                    title=titulo_area_rend,
+                    height=500
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # Calcular o coeficiente de correlação
+                corr_area_rend = dados_produto['Area_Plantada_Hectares'].corr(dados_produto['Rendimento_KgPorHectare'])
+                st.metric("Coeficiente de Correlação", f"{corr_area_rend:.3f}")
+                
+                # Interpretar a correlação
+                if abs(corr_area_rend) < 0.3:
+                    st.info("Correlação fraca: Pouca evidência de economias de escala.")
+                elif corr_area_rend >= 0.3:
+                    st.success("Correlação positiva: Há evidências de economias de escala.")
                 else:
-                    intensidade = "forte"
-                    icon = "❌" if corr_valor < 0 else "🔥"
+                    st.error("Correlação negativa: Áreas maiores tendem a ter menor rendimento.")
+            
+            with col2a:
+                # Correlação entre valor da produção e rendimento
+                st.subheader("Valor da Produção vs. Rendimento")
                 
-                direcao = "positiva" if corr_valor >= 0 else "negativa"
+                fig = px.scatter(
+                    dados_produto,
+                    x='Valor_Produzido_Mil_Reais',
+                    y='Rendimento_KgPorHectare',
+                    color='Mesorregião' if len(dados_produto['Mesorregião'].unique()) <= 10 else None,
+                    opacity=0.7,
+                    trendline="ols",
+                    labels={
+                        'Valor_Produzido_Mil_Reais': 'Valor da Produção (Mil Reais)',
+                        'Rendimento_KgPorHectare': 'Rendimento (Kg/Hectare)'
+                    },
+                    title=titulo_valor_rend,
+                    height=500
+                )
                 
-                st.markdown(f"{icon} **{var_nome}**: Correlação {intensidade} {direcao} ({corr_valor:.3f})")
-        else:
-            st.warning("Não foram encontradas variáveis climáticas nos dados filtrados.")
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # Calcular o coeficiente de correlação
+                corr_valor_rend = dados_produto['Valor_Produzido_Mil_Reais'].corr(dados_produto['Rendimento_KgPorHectare'])
+                st.metric("Coeficiente de Correlação", f"{corr_valor_rend:.3f}")
+                
+                # Interpretar a correlação
+                if abs(corr_valor_rend) < 0.3:
+                    st.info("Correlação fraca: Pouca relação entre valor e rendimento.")
+                elif corr_valor_rend >= 0.3:
+                    st.success("Correlação positiva: Maior rendimento está associado a maior valor.")
+                else:
+                    st.error("Correlação negativa: Relação inversa entre valor e rendimento.")
+            
+            # Correlações com variáveis climáticas
+            st.subheader("Correlações com Variáveis Climáticas")
+            
+            # Verificar se há variáveis climáticas disponíveis
+            var_climaticas = [col for col in dados_produto.columns if col in [
+                'precipitacao_total_anual', 'radiacao_global_media', 
+                'temperatura_bulbo_media', 'vento_velocidade_media'
+            ]]
+            
+            if var_climaticas:
+                # Criar matriz de correlação
+                cols_analise = var_climaticas + ['Rendimento_KgPorHectare']
+                matriz_corr = dados_produto[cols_analise].corr()
+                
+                # Renomear colunas para melhor visualização
+                matriz_corr.columns = [
+                    col.replace('_', ' ').title() for col in matriz_corr.columns
+                ]
+                matriz_corr.index = matriz_corr.columns
+                
+                # Criar mapa de calor
+                # Mask upper triangle
+                matriz_corr_masked = matriz_corr.copy()
+                matriz_corr_masked.values[np.triu_indices_from(matriz_corr, k=1)] = np.nan
 
+                fig = px.imshow(
+                    matriz_corr_masked,
+                    text_auto='.3f',
+                    labels=dict(x="Variável", y="Variável", color="Correlação"),
+                    x=matriz_corr.columns,
+                    y=matriz_corr.index,
+                    color_continuous_scale='RdBu_r',
+                    color_continuous_midpoint=0,
+                    title=f'Matriz de Correlação - {produto_correlacao}'
+                )
+
+                fig.update_layout(height=600)
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # Mostrar interpretações para cada variável climática
+                st.subheader("Interpretação de Correlações Climáticas com Rendimento")
+                
+                for var in var_climaticas:
+                    var_nome = var.replace('_', ' ').title()
+                    corr_valor = matriz_corr.loc['Rendimento Kgporhectare', var_nome]
+                    
+                    if abs(corr_valor) < 0.3:
+                        intensidade = "fraca"
+                        icon = "ℹ️"
+                    elif abs(corr_valor) < 0.7:
+                        intensidade = "moderada"
+                        icon = "⚠️" if corr_valor < 0 else "✅"
+                    else:
+                        intensidade = "forte"
+                        icon = "❌" if corr_valor < 0 else "🔥"
+                    
+                    direcao = "positiva" if corr_valor >= 0 else "negativa"
+                    
+                    st.markdown(f"{icon} **{var_nome}**: Correlação {intensidade} {direcao} ({corr_valor:.3f})")
+            else:
+                st.warning("Não foram encontradas variáveis climáticas nos dados filtrados.")
+        
+        except Exception as e:
+            st.error(f"Ocorreu um erro ao processar os dados: {str(e)}")
+            st.exception(e)  # This will show more details in development mode
+            
     # 4. Análise de volatilidade
     elif pagina == "4. Volatilidade":
         st.header("Análise de Volatilidade")
