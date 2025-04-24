@@ -34,6 +34,7 @@ pagina = st.sidebar.radio(
     "Selecione uma análise:",
     [
         "Início",
+        "Mapas",
         "1. Tendências Temporais",
         "2. Comparativos Regionais",
         "3. Correlações",
@@ -54,7 +55,6 @@ def carregar_dados():
 # Tentar carregar os dados
 try:
     df_consolidado = carregar_dados()
-    st.sidebar.success("Dados carregados com sucesso!")
 except Exception as e:
     st.sidebar.error(f"Erro ao carregar os dados: {e}")
     st.stop()
@@ -246,6 +246,11 @@ with main_container:
         fig.update_layout(height=600)
         st.plotly_chart(fig, use_container_width=True)
 
+    elif pagina == "Mapas":
+        powerbi_url = "https://app.powerbi.com/view?r=eyJrIjoiOWJjMzNiZGEtYTk5Ni00OWEwLTkxNjYtY2RhYmU1NDU1ZGMyIiwidCI6ImMxNzdmNmRkLWY1MTUtNDRlNy05ZmMzLTZiNzZjODdhZmViMCJ9"
+
+        # Embed in an iframe
+        components.iframe(powerbi_url, height=720, width=640)
     # 1. Tendências Temporais    
     elif pagina == "1. Tendências Temporais":
         st.header("Análise de Tendências Temporais")
