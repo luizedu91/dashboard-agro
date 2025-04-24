@@ -247,10 +247,10 @@ with main_container:
         st.plotly_chart(fig, use_container_width=True)
 
     elif pagina == "Mapas":
-        powerbi_url = "https://app.powerbi.com/view?r=eyJrIjoiOWJjMzNiZGEtYTk5Ni00OWEwLTkxNjYtY2RhYmU1NDU1ZGMyIiwidCI6ImMxNzdmNmRkLWY1MTUtNDRlNy05ZmMzLTZiNzZjODdhZmViMCJ9"
+        powerbi_url = "https://app.powerbi.com/view?r=eyJrIjoiMWRhOWY4NzItYzMwNi00Yzk0LWIxZmYtNTMyYzlhZDUzM2U4IiwidCI6ImMxNzdmNmRkLWY1MTUtNDRlNy05ZmMzLTZiNzZjODdhZmViMCJ9"
 
         # Embed in an iframe
-        components.iframe(powerbi_url, height=720, width=640)
+        components.iframe(powerbi_url, height=600, width=600)
     # 1. Tendências Temporais    
     elif pagina == "1. Tendências Temporais":
         st.header("Análise de Tendências Temporais")
