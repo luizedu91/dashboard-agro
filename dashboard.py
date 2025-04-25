@@ -95,7 +95,7 @@ if 'periodo_selecionado' not in st.session_state:
 if pagina == "3. Correlações":
     st.sidebar.markdown("""
     <div style="border:3px solid #000000; border-radius:1px; padding:1px; margin:20px ;">
-<center><h4 style="color:#00000; margin-top:1">Controles de Correlação</h4></center>
+    <center><h4 style="color:#00000; margin-top:1">Controles de Correlação</h4></center>
 
     """, unsafe_allow_html=True)
     
@@ -1955,7 +1955,12 @@ with main_container:
                 
             # Get current selection
             perfil_cliente = st.session_state.perfil_cliente
-
+            st.markdown(
+                """
+                <hr style="border: none; border-left: 1px solid #ccc; height: 100%;">
+                """,
+                unsafe_allow_html=True,
+            )
         # Right column for content
         with col2:
             persona_container = st.container()
@@ -2110,7 +2115,11 @@ with main_container:
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; font-size: small;">
-    <p>Luiz Eduardo Piá de Andrade - 2025</p>
+<p> Luiz Eduardo Piá de Andrade - 2025 <br>
+    <a href="https://www.linkedin.com/in/luiz-eduardo-pia/" target="_blank" style="text-decoration: none; color: inherit;">
+        LinkedIn
+    </a> 
+</p>
 </div>
 """, unsafe_allow_html=True)
 
