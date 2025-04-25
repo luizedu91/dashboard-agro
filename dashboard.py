@@ -1137,14 +1137,7 @@ with main_container:
                     'categoryorder': 'array', 
                     'categoryarray': regioes_instaveis['Mesorregião'].tolist(),
                     'autorange': "reversed"
-                },
-                legend_title_text='Região Destacada',
-                legend=dict(
-                    yanchor="top",
-                    y=0.99,
-                    xanchor="right",
-                    x=0.99
-                )
+                }, showlegend=False
             )
             
             st.plotly_chart(fig, use_container_width=True)
