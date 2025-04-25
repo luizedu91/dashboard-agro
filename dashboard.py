@@ -11,6 +11,7 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 import plotly.express as px
+import json
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import warnings
@@ -18,14 +19,14 @@ warnings.filterwarnings('ignore')
 
 # Configuração da página
 st.set_page_config(
-    page_title="Dashboard de Análises Agrícolas",
+    page_title="Dashboard de análises agrícolas",
     page_icon="🌱",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # Título principal
-st.title("Dashboard de Análises Agrícolas")
+st.title("Dashboard de análises agrícolas")
 st.markdown("---")
 
 # Sidebar para navegação
@@ -35,14 +36,14 @@ pagina = st.sidebar.radio(
     [
         "Início",
         "Mapas",
-        "1. Tendências Temporais",
-        "2. Comparativos Regionais",
+        "1. Tendências temporais",
+        "2. Comparativos regionais",
         "3. Correlações",
         "4. Volatilidade",
-        "5. Taxonomia de Mesorregiões",
-        "6. Séries Temporais",
-        "7. Especialização Regional",
-        "8. Resultados das Análises"
+        "5. Taxonomia de mesorregiões",
+        "6. Séries temporais",
+        "7. Especialização regional",
+        "8. Resultados das análises"
     ]
 )
 
@@ -274,12 +275,12 @@ else:
 main_container = st.container()
 with main_container:
     # Página inicial
-    if pagina == "Início":
-        st.header("Visão Geral")
-        
+    if pagina == "Início":        
         st.subheader("Contexto")
         st.markdown("""
             Este dashboard é uma análise de dados agrícolas brasileiros a nível de mesorregião. Inclui dados de produtividade, produção e área plantada as maiores culturas do país ao longo do período de 1990 a 2022, com dados meteorológicos de 2000 a 2022.
+            
+            Os dados foram agregados a partir das APIs do IBGE e do INMET, e foram tratados para garantir a consistência e a qualidade. O objetivo é fornecer insights sobre a evolução da agricultura brasileira, permitindo análises detalhadas por região e cultura. O caderno onde os dados foram tratados está disponível [aqui](https://github.com/luizedu91/dashboard-agro/blob/main/Safra.ipynb)
 
             Utilize o menu na barra lateral para navegar entre as diferentes análises disponíveis.
 
@@ -382,8 +383,8 @@ with main_container:
         components.iframe(powerbi_url, height=600, width=600)
     
     # 1. Tendências Temporais    
-    elif pagina == "1. Tendências Temporais":
-        st.header("Análise de Tendências Temporais")
+    elif pagina == "1. Tendências temporais":
+        st.header("Análise de tendências temporais")
         
         # Descrição da análise
         st.markdown("""
@@ -392,7 +393,7 @@ with main_container:
         """)
         
         # Visualização interativa com Plotly
-        st.subheader("Evolução do Rendimento Médio por Cultura")
+        st.subheader("Evolução do rendimento médio por cultura")
         
         # Agrupar por Produto e Ano para calcular o rendimento médio
         rendimento_medio = df_filtrado.groupby(['Produto', 'Ano'])['Rendimento_KgPorHectare'].mean().reset_index()
@@ -445,7 +446,7 @@ with main_container:
         st.plotly_chart(fig, use_container_width=True)
         
         # Identificação de pontos de inflexão
-        st.subheader("Pontos de Inflexão por Cultura")
+        st.subheader("Pontos de inflexão por cultura")
         
         # Criar duas colunas para os controles, com proporção que deixa mais espaço para o gráfico
         col1, col2 = st.columns([1, 4])
@@ -539,8 +540,8 @@ with main_container:
             st.info(f"Não foram identificados pontos de inflexão para {produto_inflexao} com o limiar de {limiar}%.")
 
     # 2. Comparativos Regionais
-    elif pagina == "2. Comparativos Regionais":
-        st.header("Comparativos Regionais")
+    elif pagina == "2. Comparativos regionais":
+        st.header("Comparativos regionais")
         
         # Descrição da análise
         st.markdown("""
@@ -549,7 +550,7 @@ with main_container:
         """)
         
         # Ranking das mesorregiões mais produtivas
-        st.subheader("Ranking das Mesorregiões mais Produtivas")
+        st.subheader("Ranking das mesorregiões mais produtivas")
         
         # Selecionar o produto para o ranking
         produto_ranking = st.selectbox(
@@ -835,7 +836,7 @@ with main_container:
 
     # 3. Correlações entre variáveis
     elif pagina == "3. Correlações":
-        st.header("Correlações entre Variáveis")
+        st.header("Correlações entre variáveis")
         
         # Descrição da análise
         st.markdown("""
@@ -948,7 +949,7 @@ with main_container:
             
             # Calcular o coeficiente de correlação para todos os dados agregados
             corr_valor_rend = dados_produto['Valor_Produzido_Mil_Reais'].corr(dados_produto['Rendimento_KgPorHectare'])
-            st.metric("Coeficiente de Correlação", f"{corr_valor_rend:.3f}")
+            st.metric("Coeficiente de correlação", f"{corr_valor_rend:.3f}")
             
             # Interpretar a correlação
             if abs(corr_valor_rend) < 0.3:
@@ -958,7 +959,7 @@ with main_container:
             else:
                 st.error("Correlação negativa: Relação inversa entre valor e rendimento.")
         # Correlações com variáveis climáticas
-        st.subheader("Correlações com Variáveis Climáticas")
+        st.subheader("Correlações com variáveis climáticas")
         st.markdown("Dados climáticos disponíveis apenas após o ano 2000")
         
         # Verificar se há variáveis climáticas disponíveis
@@ -998,7 +999,7 @@ with main_container:
             st.plotly_chart(fig, use_container_width=True)
             
             # Mostrar interpretações para cada variável climática
-            st.subheader("Interpretação de Correlações Climáticas com Rendimento")
+            st.subheader("Interpretação de correlações climáticas com rendimento")
             
             for var in var_climaticas:
                 var_nome = var.replace('_', ' ').title()
@@ -1022,7 +1023,7 @@ with main_container:
 
     # 4. Análise de volatilidade
     elif pagina == "4. Volatilidade":
-        st.header("Análise de Volatilidade")
+        st.header("Análise de volatilidade")
         
         # Descrição da análise
         st.markdown("""
@@ -1049,14 +1050,14 @@ with main_container:
             CV_Medio=('CV', 'mean')
         ).sort_values('CV_Medio', ascending=True).reset_index()
         
-        st.subheader("Volatilidade por Cultura")
+        st.subheader("Volatilidade por cultura")
         
         fig = px.bar(
             culturas_volatilidade,
             y='Produto',
             x='CV_Medio',
             orientation='h',
-            title='Volatilidade do Rendimento por Cultura (Coeficiente de Variação Médio)',
+            title='Volatilidade do rendimento por cultura (Coeficiente de variação médio)',
             labels={'CV_Medio': 'Coeficiente de Variação Médio (%)', 'Produto': ''},
             color='CV_Medio',
             color_continuous_scale='RdYlGn_r',
@@ -1074,7 +1075,7 @@ with main_container:
         st.plotly_chart(fig, use_container_width=True)
         
         # Análise regional de volatilidade
-        st.subheader("Volatilidade Regional por Produto")
+        st.subheader("Volatilidade regional por produto")
         
         # Filtrar dados do produto selecionado
         cv_produto = cv_por_produto_regiao[cv_por_produto_regiao['Produto'] == produto_volatilidade]
@@ -1083,7 +1084,7 @@ with main_container:
         cv_produto['Destacado'] = cv_produto['Mesorregião'].isin(regioes_destacadas)
         
         # Criar abas para regiões estáveis e instáveis
-        tab1, tab2 = st.tabs(["Regiões mais Estáveis", "Regiões mais Instáveis"])
+        tab1, tab2 = st.tabs(["Regiões mais estáveis", "Regiões mais instáveis"])
         
         with tab1:
             # Regiões mais estáveis (menor CV)
@@ -1149,7 +1150,7 @@ with main_container:
             st.plotly_chart(fig, use_container_width=True)
         
         # Análise da relação entre rendimento médio e volatilidade
-        st.subheader("Relação entre Rendimento Médio e Volatilidade")
+        st.subheader("Relação entre rendimento médio e volatilidade")
         
         fig = px.scatter(
             cv_produto,
@@ -1162,7 +1163,7 @@ with main_container:
                 'Rendimento_Medio': 'Rendimento Médio (Kg/Hectare)',
                 'CV': 'Coeficiente de Variação (%)'
             },
-            title=f'Relação entre Rendimento Médio e Volatilidade - {produto_volatilidade}',
+            title=f'Relação entre rendimento médio e volatilidade - {produto_volatilidade}',
             color='Destacado',
             color_discrete_map={True: '#FF4B4B', False: '#636EFA'},
             template='plotly_white'
@@ -1215,9 +1216,9 @@ with main_container:
             st.table(df_destacadas_formatado[['Mesorregião', 'Rendimento_Medio', 'CV']].sort_values('CV'))
     
     # 5. Taxonomia de mesorregiões
-    elif pagina == "5. Taxonomia de Mesorregiões":
+    elif pagina == "5. Taxonomia de mesorregiões":
             
-        st.header("Taxonomia de Mesorregiões")
+        st.header("Taxonomia de mesorregiões")
         
         # Descrição da análise
         st.markdown("""
@@ -1271,7 +1272,7 @@ with main_container:
             cluster_info = rendimento_pivot.groupby('Cluster').mean()
             
             # Características dos clusters
-            st.subheader("Características dos Clusters")
+            st.subheader("Características dos clusters")
             
             # Criar DataFrame para visualização
             cluster_data = []
@@ -1291,7 +1292,7 @@ with main_container:
             st.dataframe(cluster_df.set_index('Cluster'))
             
             # Visualização dos clusters
-            st.subheader("Visualização dos Clusters")
+            st.subheader("Visualização dos clusters")
             
             # Criar PCA para visualização em 2D
             from sklearn.decomposition import PCA
@@ -1327,7 +1328,7 @@ with main_container:
             st.plotly_chart(fig, use_container_width=True)
             
             # Análise detalhada por cluster
-            st.subheader("Análise Detalhada por Cluster")
+            st.subheader("Análise detalhada por cluster")
             
             cluster_selecionado = st.selectbox(
                 "Selecione um cluster para análise detalhada:",
@@ -1341,7 +1342,7 @@ with main_container:
             st.write(', '.join(mesorregioes_cluster))
             
             # Perfil de rendimento do cluster
-            st.write(f"**Perfil de Rendimento do Cluster {cluster_selecionado}**:")
+            st.write(f"**Perfil de rendimento do cluster {cluster_selecionado}**:")
             
             # Criar gráfico de radar para visualizar o perfil do cluster
             cluster_profile = cluster_info.loc[cluster_selecionado].reset_index()
@@ -1357,14 +1358,93 @@ with main_container:
             
             fig.update_layout(
                 height=500,
-                title=f'Perfil de Rendimento do Cluster {cluster_selecionado}'
+                title=f'Perfil de rendimento do cluster {cluster_selecionado}'
             )
             
             st.plotly_chart(fig, use_container_width=True)
-        
+                        
+            with open('meso_region.geojson', 'r', encoding='utf-8') as f:
+                geojson = json.load(f)
+
+            # Converter o cluster para string para melhor visualização
+            df_map = rendimento_pivot.reset_index()
+            df_map['Cluster'] = 'Cluster ' + df_map['Cluster'].astype(str)
+            
+            def capitalize_mesorregioes(text):
+                # Split by state abbreviation
+                parts = text.strip().split(' - ')
+                
+                if len(parts) == 2:
+                    region, state = parts
+                    # Capitalize words in the region part
+                    words = region.split()
+                    capitalized_words = []
+                    
+                    for word in words:
+                        if '-' in word or '/' in word:
+                            # Handle hyphenated and slash-separated words
+                            # First split by hyphen
+                            hyphen_parts = word.split('-')
+                            temp_parts = []
+                            
+                            for part in hyphen_parts:
+                                # Then split each hyphen part by slash
+                                if '/' in part:
+                                    slash_parts = part.split('/')
+                                    temp_parts.append('/'.join(sp.capitalize() for sp in slash_parts))
+                                else:
+                                    if not (len(part) == 2 and part.upper() == part):
+                                        temp_parts.append(part.capitalize())
+                                    else:
+                                        temp_parts.append(part)
+                                        
+                            capitalized_words.append('-'.join(temp_parts))
+                        else:
+                            # Handle normal words
+                            if not (len(word) == 2 and word.upper() == word):
+                                capitalized_words.append(word.capitalize())
+                            else:
+                                capitalized_words.append(word)
+                    
+                    return ' '.join(capitalized_words) + ' - ' + state
+                else:
+                    # If no state abbreviation pattern found
+                    return text
+
+            df_map['Mesorregião'] = df_map['Mesorregião'].apply(capitalize_mesorregioes)
+                
+            # Criar o mapa choropleth
+            fig = px.choropleth_mapbox(
+                df_map,
+                geojson=geojson,
+                locations='Mesorregião', 
+                featureidkey='properties.Mesorregião', 
+                color='Cluster',
+                color_discrete_sequence=px.colors.qualitative.Bold,  # Esquema de cores
+                mapbox_style="carto-positron",  # Estilo do mapa base
+                zoom=3,  # Nível de zoom inicial
+                center={"lat": -15.7801, "lon": -47.9292},  # Centro do mapa (Brasília)
+                opacity=0.5,  # Aumentando a transparência para melhor visualização de sobreposições
+                labels={'Cluster': 'Agrupamento'},
+                title='Clusters de Mesorregiões por Padrões de Produtividade',
+                hover_name='Mesorregião',  # Nome a ser mostrado no hover
+            )
+            
+            # Melhorar o layout
+            fig.update_layout(
+                margin={"r": 0, "t": 40, "l": 0, "b": 0},
+                height=700,
+                legend_title_text='Agrupamento',
+                mapbox=dict(
+                    bearing=0,
+                    pitch=0,
+                )
+            )
+            st.plotly_chart(fig, use_container_width=True)
+                    
     # 6. Séries Temporais Avançadas
-    elif pagina == "6. Séries Temporais":
-        st.header("Séries Temporais Avançadas")
+    elif pagina == "6. Séries temporais":
+        st.header("Séries temporais avançadas")
         
         # Descrição da análise
         st.markdown("""
@@ -1390,7 +1470,7 @@ with main_container:
             st.warning(f"Dados insuficientes para decomposição da série temporal de {produto_serie}. São necessários pelo menos 8 anos de dados.")
         else:
             # Visualizar a série temporal original
-            st.subheader("Série Temporal Original")
+            st.subheader("Série temporal original")
             
             fig = px.line(
                 serie_anual,
@@ -1409,7 +1489,7 @@ with main_container:
             st.plotly_chart(fig, use_container_width=True)
             
             # Decomposição da série temporal
-            st.subheader("Decomposição da Série Temporal")
+            st.subheader("Decomposição da série temporal")
             
             # Perguntar ao usuário o período de sazonalidade
             periodo = st.slider(
@@ -1508,7 +1588,7 @@ with main_container:
                     """)
                 
                 # Detecção de outliers
-                st.subheader("Detecção de Outliers na Série Temporal")
+                st.subheader("Detecção de outliers na série temporal")
                 
                 # Calcular limites para outliers (método IQR)
                 Q1 = residuos['Valor'].quantile(0.25)
@@ -1572,7 +1652,7 @@ with main_container:
                     
                     # Interpretação
                     st.write("""
-                    **Interpretação dos Outliers:**
+                    **Interpretação dos outliers:**
                     
                     Os anos destacados apresentam rendimentos significativamente diferentes do esperado,
                     considerando a tendência e sazonalidade da série. Estes podem representar:
@@ -1589,8 +1669,8 @@ with main_container:
                 st.error(f"Erro ao realizar a decomposição da série temporal: {str(e)}")
 
     # 7. Indicadores de Especialização Regional
-    elif pagina == "7. Especialização Regional":
-        st.header("Indicadores de Especialização Regional")
+    elif pagina == "7. Especialização regional":
+        st.header("Indicadores de especialização regional")
         
         # Descrição da análise
         st.markdown("""
@@ -1682,15 +1762,15 @@ with main_container:
         st.plotly_chart(fig, use_container_width=True)
         
         # Análise de diversificação agrícola
-        st.subheader("Diversificação Agrícola")
+        st.subheader("Diversificação agrícola")
         
         st.markdown("""
-        **O que é o Índice de Diversificação?**
+        **O que é o Índice de diversificação?**
         
-        O Índice de Diversificação mede o quão diversificada é a produção agrícola de uma mesorregião.
+        O Índice de diversificação mede o quão diversificada é a produção agrícola de uma mesorregião.
         Um índice maior indica uma produção mais diversificada (menos concentrada em poucas culturas).
         
-        Índice = 1 - Soma(participação de cada cultura²)
+        Índice = 1 - Σ(participação de cada cultura em % da área total²)
         
         Valores próximos a 1 indicam alta diversificação, enquanto valores próximos a 0 indicam alta concentração.
         """)
@@ -1703,10 +1783,10 @@ with main_container:
         # Duas opções de visualização
         opcao_diversificacao = st.radio(
             "Selecione o tipo de análise:",
-            ["Ranking de Diversificação", "Evolução Temporal da Diversificação"]
+            ["Ranking de diversificação", "Evolução temporal da diversificação"]
         )
         
-        if opcao_diversificacao == "Ranking de Diversificação":
+        if opcao_diversificacao == "Ranking de diversificação":
             # Calcular a média do índice de diversificação para cada mesorregião
             diversificacao_media = diversificacao.groupby('Mesorregião')['Indice_Diversificacao'].mean().reset_index()
             diversificacao_media = diversificacao_media.sort_values('Indice_Diversificacao', ascending=False)
@@ -1737,7 +1817,7 @@ with main_container:
             st.plotly_chart(fig, use_container_width=True)
             
             # Mostrar as mesorregiões menos diversificadas
-            st.write("**Mesorregiões com Menor Diversificação Agrícola:**")
+            st.write("**Mesorregiões com menor diversificação agrícola:**")
             
             fig = px.bar(
                 diversificacao_media.tail(num_mesorregioes_div).iloc[::-1],
@@ -1810,7 +1890,7 @@ with main_container:
                 
                 # Interpretação
                 st.markdown("""
-                **Interpretação da Evolução da Diversificação:**
+                **Interpretação da evolução da diversificação:**
                 
                 O gráfico mostra como a diversificação agrícola evoluiu ao longo do tempo nas mesorregiões selecionadas,
                 comparada à média nacional (linha tracejada). Tendências crescentes indicam aumento na diversificação,
@@ -1820,161 +1900,138 @@ with main_container:
                 st.warning("Por favor, selecione pelo menos uma mesorregião para comparação.")
 
     # 8. Resultado das análises
-    elif pagina == "8. Resultados das Análises":
-        st.header("Casos de Uso por Perfil de Cliente")
+    elif pagina == "8. Resultados das análises":
+        st.header("Exemplos de análises por perfil de cliente")
         
         st.markdown("""
         Nesta seção, apresentamos como os diferentes stakeholders do setor agrícola podem utilizar os dados e análises disponíveis para tomar decisões estratégicas.""")
         
-        # Seletor de perfil
-        perfil_cliente = st.selectbox(
-            "Selecione um perfil de cliente:",
-            [
-                "Produtor Rural",
-                "Financeira/Seguradora",
-                "Órgão Governamental", 
-                "Empresa de Tecnologia Agrícola", 
-                "Indústria de Processamento",
-                "Investidor em Terras Agrícolas"
-            ]
-        )
-        
-        # Container para a persona e sua pergunta
-        persona_container = st.container()
-        
-        with persona_container:
-            if perfil_cliente == "Produtor Rural":
-                st.subheader("Produtor de Soja no Mato Grosso")
-                st.markdown("""
-                *"Estou planejando expandir minha área de plantio de soja. Quero identificar 
-                se existe uma relação entre o tamanho da área plantada e o rendimento. 
-                Também quero entender como a produtividade da minha região variou ao longo do tempo 
-                e se ela é muito volátil comparada a outras regiões."*
-                """)
-                
-                # Resposta ao caso de uso
-                st.markdown("### Análise Recomendada")
-                
-                tab1, tab2, tab3 = st.tabs(["Economias de Escala", "Tendências Temporais", "Análise de Risco"])
-                
-                with tab1:
-                    st.markdown("""
-                    **Correlação entre Área Plantada e Rendimento**
-                    """)
-                    
-                    st.warning("Navegue até a seção '3. Correlações' para visualizar esta análise para a soja.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    Os dados mostram que para a soja no Mato Grosso, não há uma correlação positiva entre as variáveis. Considerando toda a série histórica a correlação é de 0.27, e ao longo do tempo ela foi diminuindo, atingindo -0.36 para os ultimos 4 anos. 
-                    
-                    Vale lembrar que os dados disponíveis são agregados a nível regional, e não individual a nível de fazenda. Portanto, a análise de correlação entre área plantada e rendimento pode não ser a melhor abordagem para entender a relação entre essas variáveis.
-                    """)
-                    
-                with tab2:
-                    st.markdown("""
-                    **Evolução do Rendimento da Soja no Mato Grosso**
-                    
-                    Analisamos como o rendimento da soja evoluiu na região ao longo dos últimos 30 anos.
-                    """)
-                    
-                    st.warning("Navegue até a seção '1. Tendências Temporais' para visualizar esta análise para a soja.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    A análise mostra que o rendimento da soja no Mato Grosso tem crescido de forma consistente, e com tendência de continuar crescendo.
-                    """)
-                    
-                with tab3:
-                    st.markdown("""
-                    **Volatilidade do Rendimento nas Principais Regiões Produtoras**
-                    
-                    Comparamos a estabilidade da produção entre diferentes regiões produtoras de soja.
-                    """)
-                    
-                    st.warning("Navegue até a seção '4. Volatilidade' para visualizar esta análise para a soja.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    A análise mostra que a soja é a cultura mais estável no Brasil, com coeficiente de variação (CV) médio de 23%. O estado do MT tem variação pouco abaixo da média do país, representando um rendimento bastante estável e robusto a variações.
-                    """)
+        col1, col2 = st.columns([1, 4]) 
+        with col1:
+            st.write("### Perfil de Cliente")
             
-            elif perfil_cliente == "Financeira/Seguradora":
-                st.subheader("Gerente de Riscos em Seguradora Agrícola")
-                st.markdown("""
-                *"Precisamos ajustar nossos modelos de precificação de seguros para diferentes 
-                culturas e regiões. Quais regiões apresentam maior volatilidade na produção 
-                de milho? Como as variáveis climáticas afetam o rendimento desta cultura? 
-                Quais anos apresentaram eventos extremos que impactaram significativamente a produção?"*
-                """)
-                
-                # Resposta ao caso de uso
-                st.markdown("### Análise Recomendada")
-                
-                tab1, tab2, tab3 = st.tabs(["Mapeamento de Riscos", "Correlações Climáticas", "Eventos Extremos"])
-                
-                with tab1:
-                    st.markdown("""
-                    **Ranking de Volatilidade por Mesorregião**
-                    
-                    Analisamos o coeficiente de variação (CV) do rendimento do milho nas diferentes mesorregiões brasileiras.
-                    """)
-                    
-                    st.warning("Navegue até a seção '4. Volatilidade' para visualizar esta análise para o milho.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    As mesorregiões com maior volatilidade para o milho a região metropolitana de Recife (PE) e o Leste Alagoano (AL), ambos com variação maior do que 100%. Outros estados com regiões de alta volatilidade são PI, SE, MA, CE e PE, todos acima de 70%.
-                    Estas regiões devem ter prêmios de seguro mais elevados para compensar o maior risco. Já o Sul e Centro Fluminense (RJ), Sul do Amapá (AP) tem variações abaixo de 15%, e podem ter prêmios de seguro mais baixos.
-                    """)
-                    
-                with tab2:
-                    st.markdown("""
-                    **Correlação entre Variáveis Climáticas e Rendimento do Milho**
-                    
-                    Analisamos como diferentes variáveis climáticas impactam o rendimento do milho nas principais regiões produtoras.
-                    """)
-                    
-                    st.warning("Navegue até a seção '3. Correlações' para visualizar esta análise para o milho.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    A única variável disponível que mostra correlação não irrelevante com o rendimento do milho é a temperatura média, com maior temperatura reduzindo o rendimento. (-0.32). Estes parâmetro deve ser incorporado nos modelos atuariais 
-                    para ajustar o risco com base nas previsões de aquecimento climático.
-                    """)
-                    
-                with tab3:
-                    st.markdown("""
-                    **Detecção de Outliers e Eventos Extremos**
-                    
-                    Identificamos anos em que ocorreram quedas ou aumentos anormais de produtividade.
-                    """)
-                    
-                    # Aqui iria um código semelhante ao da aba de séries temporais (detecção de outliers)
-                    st.warning("Navegue até a seção '6. Séries Temporais' para visualizar esta análise para o milho.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    A análise detectou eventos extremos negativos nos anos de 2005, 2012 e 2016, 
-                    com quedas de rendimento acima de 25% em relação à tendência. Estes anos 
-                    coincidiram com secas severas e podem ser utilizados como cenários de 
-                    estresse para testes de modelos de seguro. A frequência destes eventos 
-                    extremos aumentou na última década, sugerindo a necessidade de revisão 
-                    nos modelos de risco.
-                    """)
+            # Store the button state in session state
+            if 'perfil_cliente' not in st.session_state:
+                st.session_state.perfil_cliente = "Produtor Rural"
             
-            elif perfil_cliente == "Órgão Governamental":
-                col1, col2 = st.columns([1, 3])
-                with col1:
-                    st.image("https://cdn.pixabay.com/photo/2018/04/26/11/51/man-3351766_1280.jpg", width=150)  # Placeholder
-                with col2:
-                    st.subheader("Carlos Mendes, Diretor de Política Agrícola")
+            # Custom CSS for full-width buttons
+            st.markdown("""
+            <style>
+            div[data-testid="stButton"] > button {
+                width: 100%;
+                box-sizing: border-box;
+                border-radius: 20px;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            # Style for selected button
+            if st.session_state.perfil_cliente == "Produtor Rural":
+                btn_style1 = "background-color: #D32F2F; color: white;"
+            else:
+                btn_style1 = "background-color: transparent; color: white; border: 1px solid #333;"
+                
+            if st.session_state.perfil_cliente == "Financeira/Seguradora":
+                btn_style2 = "background-color: #D32F2F; color: white;"
+            else:
+                btn_style2 = "background-color: transparent; color: white; border: 1px solid #333;"
+                
+            if st.session_state.perfil_cliente == "Órgão Governamental":
+                btn_style3 = "background-color: #D32F2F; color: white;"
+            else:
+                btn_style3 = "background-color: transparent; color: white; border: 1px solid #333;"
+            
+            # Button for Produtor Rural with custom style
+            if st.button("Produtor Rural", key="btn_produtor"):
+                st.session_state.perfil_cliente = "Produtor Rural"
+            
+            # Button for Financeira/Seguradora
+            if st.button("Financeira/Seguradora", key="btn_financeira"):
+                st.session_state.perfil_cliente = "Financeira/Seguradora"
+            
+            # Button for Órgão Governamental
+            if st.button("Órgão Governamental", key="btn_governo"):
+                st.session_state.perfil_cliente = "Órgão Governamental"
+                
+            # Get current selection
+            perfil_cliente = st.session_state.perfil_cliente
+
+        # Right column for content
+        with col2:
+            persona_container = st.container()
+            
+            with persona_container:
+                if perfil_cliente == "Produtor Rural":
+                    st.subheader("Produtor de Soja no Mato Grosso")
+                    st.markdown("""
+                    *"Estou planejando expandir minha área de plantio de soja. Quero identificar 
+                    se existe uma relação entre o tamanho da área plantada e o rendimento. 
+                    Também quero entender como a produtividade da minha região variou ao longo do tempo 
+                    e se ela é muito volátil comparada a outras regiões."*
+                    """)
+                    
+                    tab1, tab2, tab3 = st.tabs(["Economias de Escala", "Tendências Temporais", "Análise de Risco"])
+                    
+                    with tab1:
+                        st.markdown("""
+                        **Correlação entre Área Plantada e Rendimento**
+                                    
+                        Os dados mostram que para a soja no Mato Grosso, não há  correlação positiva entre as variáveis. Considerando toda a série histórica a correlação é de 0.27, e ao longo do tempo ela foi diminuindo, atingindo -0.36 para os ultimos 4 anos. 
+                        
+                        Vale lembrar que os dados disponíveis são agregados a nível regional, e não individual a nível de fazenda. Portanto, a análise de correlação entre área plantada e rendimento pode não ser a melhor abordagem para entender a relação entre essas variáveis.
+                        """)
+                        
+                    with tab2:
+                        st.markdown("""
+                        **Evolução do Rendimento da Soja no Mato Grosso**
+                        
+                        A análise mostra que ao longo dos últimos 30 anos o rendimento da soja no Mato Grosso tem crescido de forma consistente, e com tendência de continuar crescendo.
+                        """)
+                        
+                    with tab3:
+                        st.markdown("""
+                        **Volatilidade do Rendimento nas Principais Regiões Produtoras**
+                        
+                        Comparando a estabilidade da produção entre diferentes regiões produtoras de soja, a análise mostra que a soja é a cultura mais estável no Brasil, com coeficiente de variação (CV) médio de 23%. O estado do MT tem variação pouco abaixo da média do país, representando um rendimento bastante estável e robusto a variações.
+                        """)
+                
+                elif perfil_cliente == "Financeira/Seguradora":
+                    st.subheader("Gerente de Riscos em Seguradora Agrícola")
+                    st.markdown("""
+                    *"Precisamos ajustar nossos modelos de precificação de seguros para diferentes 
+                    culturas e regiões. Quais regiões apresentam maior volatilidade na produção 
+                    de milho? Como as variáveis climáticas afetam o rendimento desta cultura? 
+                    Quais anos apresentaram eventos extremos que impactaram significativamente a produção?"*
+                    """)
+                                        
+                    tab1, tab2, tab3 = st.tabs(["Mapeamento de Riscos", "Correlações Climáticas", "Eventos Extremos"])
+                    
+                    with tab1:
+                        st.markdown("""
+                        **Ranking de Volatilidade por Mesorregião**
+                        
+                        As mesorregiões com maior volatilidade para o milho a região metropolitana de Recife (PE) e o Leste Alagoano (AL), ambos com variação maior do que 100%. Outros estados com regiões de alta volatilidade são PI, SE, MA, CE e PE, todos acima de 70%.
+                        Estas regiões devem ter prêmios de seguro mais elevados para compensar o maior risco. Já o Sul e Centro Fluminense (RJ), Sul do Amapá (AP) tem variações abaixo de 15%, e podem ter prêmios de seguro mais baixos.
+                        """)
+                        
+                    with tab2:
+                        st.markdown("""
+                        **Correlação entre Variáveis Climáticas e Rendimento do Milho**
+                        
+                        A única variável disponível que mostra correlação não irrelevante com o rendimento do milho é a temperatura média, com maior temperatura reduzindo o rendimento. (-0.32). Estes parâmetro deve ser incorporado nos modelos atuariais 
+                        para ajustar o risco com base nas previsões de aquecimento climático.
+                        """)
+                        
+                    with tab3:
+                        st.markdown("""
+                        **Detecção de Outliers e Eventos Extremos**
+                        
+                        O rendimento do milho apresenta tendência estável de crescimento na média, crescendo de 1.400 para 4.000 kg/ha entre 1990 e 2022. No agregado, os únicos períodos de variação anormal foi entre 2015-2017, quando houve uma queda abrupta por falta de chuvas durante o desenvolvimento das lavouras. A frequência destes eventos extremos aumentará no futuro, sugerindo a necessidade de revisão nos modelos de risco.
+                        """)
+                
+                elif perfil_cliente == "Órgão Governamental":
+                    
+                    st.subheader("Diretor de Política Agrícola")
                     st.markdown("""
                     *"Estamos revisando nossas políticas de desenvolvimento regional. 
                     Precisamos identificar regiões com potencial para diversificação 
@@ -1982,398 +2039,54 @@ with main_container:
                     evoluiu nas últimas décadas. Também queremos identificar regiões 
                     com produtividade abaixo do potencial para direcionar programas de assistência técnica."*
                     """)
+                    
+                    
+                    tab1, tab2, tab3 = st.tabs(["Diversificação Agrícola", "Especialização Regional", "Gaps de Produtividade"])
+                    
+                    with tab1:
+                        st.markdown("""
+                        **Evolução da Diversificação Agrícola por Mesorregião**
+                        
+                        Analisamos como o índice de diversificação agrícola evoluiu nas diferentes mesorregiões brasileiras.
+                        
+                        O maiores índices de diversificação agrícola são Sudoeste Piauiense, Triângulo Mineiro, Sudoeste do MS (> 0.78),enquanto regiões como o Piracicaba (SP), Sertão e Agreste Sergipano, e região metropolitana de Recife mostram alta concentração em monoculturas (índices < 0.3). A análise temporal mostra uma tendência de aumento na diversificação nas últimas duas décadas, mas vale ressaltar os limites da base de dados, que inclui apenas as culturas mais relevantes, e não considera a diversidade de culturas menores.
+                        """)
+                        
+                    with tab2:
+                        st.markdown("""
+                        **Índice de Especialização Regional (IER)**
+                        
+                        Calculamos o quanto cada mesorregião é especializada em determinadas culturas em comparação com a média nacional.
+                        
+                        Identificamos clusters de grande especialização em cultivo de arroz no Marajó - PA (IER > 12) e de feijão no PE e outros estados do nordeste (IER > 8). Já milho, soja, e trigo tendem a ter pouca especialização, com IERs de 2.5, 1,0 e 3.5, respectivamente.
+                        
+                        Estes polos de especialização podem ser fortalecidos com políticas específicas de apoio a 
+                        cadeias produtivas, enquanto regiões com baixa especialização podem se beneficiar de 
+                        programas de desenvolvimento de novas cadeias produtivas.
+                        """)
+                        
+                    with tab3:
+                        st.markdown("""
+                        **Comparativo de Rendimento entre Mesorregiões**
+                        
+                        Comparamos o rendimento médio das principais culturas entre diferentes mesorregiões para identificar gaps de produtividade.
+                        """)
+                        
+                        # Aqui iria um código semelhante ao da aba de comparativos regionais
+                        st.warning("Navegue até a seção '2. Comparativos Regionais' para visualizar esta análise.")
+                        
+                        st.markdown("""
+                        **Interpretação:** 
+                        
+                        Para a cultura do feijão, identificamos gaps de produtividade de até 180% 
+                        entre as regiões mais e menos produtivas com condições edafoclimáticas similares. 
+                        O Noroeste Paranaense alcança rendimentos médios de 2.450 kg/ha, enquanto o 
+                        Norte de Minas, com condições semelhantes, produz apenas 880 kg/ha. 
+                        Isto sugere um potencial significativo para programas de transferência de 
+                        tecnologia e assistência técnica dirigida.
+                        """)
                 
-                # Resposta ao caso de uso
-                st.markdown("### Análise Recomendada")
-                
-                tab1, tab2, tab3 = st.tabs(["Diversificação Agrícola", "Especialização Regional", "Gaps de Produtividade"])
-                
-                with tab1:
-                    st.markdown("""
-                    **Evolução da Diversificação Agrícola por Mesorregião**
-                    
-                    Analisamos como o índice de diversificação agrícola evoluiu nas diferentes mesorregiões brasileiras.
-                    """)
-                    
-                    # Aqui iria um código semelhante ao da aba de especialização regional (índice de diversificação)
-                    st.warning("Navegue até a seção '7. Especialização Regional' para visualizar esta análise.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    O Oeste de Santa Catarina, o Norte do Paraná e o Sudoeste de Minas Gerais 
-                    apresentam os maiores índices de diversificação agrícola (> 0.8), 
-                    enquanto regiões como o Centro-Sul Mato-grossense e o Oeste Baiano 
-                    mostram alta concentração em monoculturas (índices < 0.3). A análise temporal 
-                    mostra uma tendência de redução na diversificação nas últimas duas décadas, 
-                    especialmente em regiões de fronteira agrícola, aumentando a 
-                    vulnerabilidade dos sistemas produtivos.
-                    """)
-                    
-                with tab2:
-                    st.markdown("""
-                    **Índice de Especialização Regional (IER)**
-                    
-                    Calculamos o quanto cada mesorregião é especializada em determinadas culturas em comparação com a média nacional.
-                    """)
-                    
-                    # Aqui iria um código semelhante ao da aba de especialização regional (IER)
-                    st.warning("Navegue até a seção '7. Especialização Regional' para visualizar esta análise.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    Identificamos clusters de especialização como o arroz no Rio Grande do Sul (IER > 3.5), 
-                    café no Sul de Minas e Espírito Santo (IER > 4.0), e frutas no Vale do São Francisco (IER > 5.0). 
-                    Estes polos de especialização podem ser fortalecidos com políticas específicas de apoio a 
-                    cadeias produtivas, enquanto regiões com baixa especialização podem se beneficiar de 
-                    programas de desenvolvimento de novas cadeias produtivas.
-                    """)
-                    
-                with tab3:
-                    st.markdown("""
-                    **Comparativo de Rendimento entre Mesorregiões**
-                    
-                    Comparamos o rendimento médio das principais culturas entre diferentes mesorregiões para identificar gaps de produtividade.
-                    """)
-                    
-                    # Aqui iria um código semelhante ao da aba de comparativos regionais
-                    st.warning("Navegue até a seção '2. Comparativos Regionais' para visualizar esta análise.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    Para a cultura do feijão, identificamos gaps de produtividade de até 180% 
-                    entre as regiões mais e menos produtivas com condições edafoclimáticas similares. 
-                    O Noroeste Paranaense alcança rendimentos médios de 2.450 kg/ha, enquanto o 
-                    Norte de Minas, com condições semelhantes, produz apenas 880 kg/ha. 
-                    Isto sugere um potencial significativo para programas de transferência de 
-                    tecnologia e assistência técnica dirigida.
-                    """)
-            
-            elif perfil_cliente == "Empresa de Tecnologia Agrícola":
-                col1, col2 = st.columns([1, 3])
-                with col1:
-                    st.image("https://cdn.pixabay.com/photo/2015/07/17/22/43/student-849825_1280.jpg", width=150)  # Placeholder
-                with col2:
-                    st.subheader("Mariana Santos, Diretora de Produto em AgTech")
-                    st.markdown("""
-                    *"Nossa empresa desenvolve soluções de agricultura de precisão e queremos 
-                    direcionar nossos esforços de vendas e desenvolvimento. Quais regiões 
-                    apresentam maior potencial para adoção de tecnologia? Onde identificamos 
-                    pontos de inflexão no rendimento que podem estar relacionados à adoção 
-                    tecnológica? Quais culturas mostram maior correlação entre variáveis 
-                    climáticas e produtividade, indicando potencial para soluções de monitoramento?"*
-                    """)
-                
-                # Resposta ao caso de uso
-                st.markdown("### Análise Recomendada")
-                
-                tab1, tab2, tab3 = st.tabs(["Potencial de Mercado", "Inflexões Tecnológicas", "Oportunidades Climáticas"])
-                
-                with tab1:
-                    st.markdown("""
-                    **Mapeamento de Regiões com Baixa Produtividade e Alta Volatilidade**
-                    
-                    Identificamos regiões que combinam baixo rendimento médio com alta volatilidade, 
-                    indicando potencial para soluções tecnológicas de estabilização da produção.
-                    """)
-                    
-                    # Aqui iria um código cruzando dados de rendimento médio e volatilidade
-                    st.warning("Combine os dados das seções '2. Comparativos Regionais' e '4. Volatilidade' para esta análise.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    As mesorregiões do MATOPIBA (Maranhão, Tocantins, Piauí e Bahia) apresentam 
-                    rendimentos 30% abaixo da média nacional combinados com volatilidade 40% acima 
-                    da média para soja e milho. Estas características, aliadas à rápida expansão 
-                    agrícola na região, a tornam ideal para soluções de agricultura de precisão 
-                    focadas em estabilidade produtiva e gestão de riscos climáticos.
-                    """)
-                    
-                with tab2:
-                    st.markdown("""
-                    **Análise de Pontos de Inflexão na Produtividade**
-                    
-                    Identificamos anos em que houve saltos significativos na produtividade 
-                    das principais culturas, potencialmente relacionados à adoção de novas tecnologias.
-                    """)
-                    
-                    # Aqui iria um código semelhante ao da aba de tendências temporais (pontos de inflexão)
-                    st.warning("Navegue até a seção '1. Tendências Temporais' para visualizar esta análise.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    Para o algodão, identificamos um significativo ponto de inflexão entre 2011-2013, 
-                    com aumento de produtividade de 32%, coincidindo com a adoção massiva de 
-                    variedades geneticamente modificadas e sistemas de plantio adensado. 
-                    Para a soja, o período 2007-2009 marcou um salto tecnológico com a 
-                    difusão do sistema ILPF (Integração Lavoura-Pecuária-Floresta) nas 
-                    regiões Centro-Oeste e MATOPIBA, sugerindo oportunidades para 
-                    tecnologias complementares a estes sistemas produtivos.
-                    """)
-                    
-                with tab3:
-                    st.markdown("""
-                    **Correlações entre Variáveis Climáticas e Rendimento**
-                    
-                    Analisamos quais culturas e regiões apresentam maior sensibilidade 
-                    às variações climáticas, indicando potencial para soluções de monitoramento.
-                    """)
-                    
-                    # Aqui iria um código semelhante ao da aba de correlações (correlações com variáveis climáticas)
-                    st.warning("Navegue até a seção '3. Correlações' para visualizar esta análise.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    O trigo no Sul do Brasil apresenta a maior correlação com variáveis 
-                    climáticas (0.81 para precipitação durante a fase de enchimento de grãos), 
-                    seguido pelo milho safrinha no Centro-Oeste (0.76 para precipitação 
-                    acumulada nos primeiros 40 dias de cultivo). Estas culturas apresentam 
-                    alto potencial para adoção de tecnologias de monitoramento climático e 
-                    suporte à decisão para manejo hídrico e de datas de plantio.
-                    """)
-            
-            elif perfil_cliente == "Indústria de Processamento":
-                col1, col2 = st.columns([1, 3])
-                with col1:
-                    st.image("https://cdn.pixabay.com/photo/2017/08/10/04/47/businessman-2617866_1280.jpg", width=150)  # Placeholder
-                with col2:
-                    st.subheader("Roberto Oliveira, Diretor de Suprimentos em Agroindústria")
-                    st.markdown("""
-                    *"Estamos avaliando a construção de uma nova planta de processamento 
-                    de grãos e precisamos entender a dinâmica produtiva das regiões candidatas. 
-                    Quais regiões têm maior volume e estabilidade de produção? 
-                    Como a sazonalidade afeta a disponibilidade de matéria-prima ao longo do ano? 
-                    Quais tendências de longo prazo podem impactar nosso planejamento estratégico?"*
-                    """)
-                
-                # Resposta ao caso de uso
-                st.markdown("### Análise Recomendada")
-                
-                tab1, tab2, tab3 = st.tabs(["Localização Estratégica", "Análise de Sazonalidade", "Projeções de Longo Prazo"])
-                
-                with tab1:
-                    st.markdown("""
-                    **Mapeamento Regional da Produção e Estabilidade**
-                    
-                    Analisamos a concentração geográfica da produção combinada com índices de volatilidade.
-                    """)
-                    
-                    # Aqui iria um código combinando dados de produção total e volatilidade
-                    st.warning("Combine os dados das seções 'Início' (Mapa de Calor) e '4. Volatilidade' para esta análise.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    O Oeste Paranaense combina alto volume de produção de milho (2,3 milhões de ton/ano) 
-                    com baixa volatilidade (CV = 14%), representando uma localização estratégica 
-                    para indústrias de processamento com necessidade de suprimento estável. 
-                    A região também conta com múltiplas culturas com volumes significativos, 
-                    permitindo diversificação de matéria-prima e operação contínua ao longo do ano.
-                    """)
-                    
-                with tab2:
-                    st.markdown("""
-                    **Decomposição Sazonal da Produção**
-                    
-                    Analisamos os padrões sazonais na disponibilidade de produtos agrícolas nas diferentes mesorregiões.
-                    """)
-                    
-                    # Aqui iria um código semelhante ao da aba de séries temporais (decomposição sazonal)
-                    st.warning("Navegue até a seção '6. Séries Temporais' para visualizar esta análise.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    Na região Centro-Oeste, identificamos um padrão complementar de disponibilidade 
-                    de soja (pico em março-abril) e milho safrinha (pico em julho-agosto), 
-                    permitindo o planejamento de operação contínua com diferentes matérias-primas. 
-                    A região Sul apresenta maior concentração sazonal, com 70% da produção disponível 
-                    entre fevereiro e maio, exigindo maior capacidade de armazenamento para 
-                    operação ao longo do ano.
-                    """)
-                    
-                with tab3:
-                    st.markdown("""
-                    **Tendências de Longo Prazo e Projeções**
-                    
-                    Analisamos as tendências históricas de produção e produtividade para projetar cenários futuros.
-                    """)
-                    
-                    # Aqui iria um código semelhante ao da aba de tendências temporais com projeções
-                    st.warning("Navegue até a seção '1. Tendências Temporais' para visualizar esta análise.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    As análises indicam uma tendência de expansão da produção de grãos no MATOPIBA 
-                    a uma taxa média de 4,7% ao ano, com ganhos de produtividade em aceleração 
-                    (taxa de 2,1% a.a. nos últimos 5 anos vs. 1,3% a.a. na década anterior). 
-                    Em contraste, o Sul e Sudeste mostram crescimento mais moderado da produção 
-                    (1,8% a.a.), baseado principalmente em ganhos de produtividade, com área 
-                    relativamente estável. Estas tendências sugerem potencial para novas 
-                    capacidades industriais nas regiões de fronteira agrícola.
-                    """)
-            
-            elif perfil_cliente == "Investidor em Terras Agrícolas":
-                col1, col2 = st.columns([1, 3])
-                with col1:
-                    st.image("https://cdn.pixabay.com/photo/2015/01/08/18/24/children-593313_1280.jpg", width=150)  # Placeholder
-                with col2:
-                    st.subheader("Paulo Andrade, Gestor de Fundo de Investimentos em Terras")
-                    st.markdown("""
-                    *"Nosso fundo está avaliando aquisições de terras para arrendamento. 
-                    Precisamos identificar regiões com tendência de valorização baseada no 
-                    aumento de produtividade. Quais regiões mostram consistente aumento de 
-                    rendimento ao longo do tempo? Como o risco climático afeta diferentes regiões? 
-                    Quais culturas apresentam melhor relação entre rendimento e estabilidade produtiva?"*
-                    """)
-                
-                # Resposta ao caso de uso
-                st.markdown("### Análise Recomendada")
-                
-                tab1, tab2, tab3 = st.tabs(["Valorização por Produtividade", "Análise de Riscos", "Otimização de Portfolio"])
-                
-                with tab1:
-                    st.markdown("""
-                    **Tendências de Produtividade por Mesorregião**
-                    
-                    Analisamos as taxas de crescimento do rendimento agrícola nas diferentes mesorregiões para identificar potencial de valorização.
-                    """)
-                    
-                    # Aqui iria um código analisando as taxas de crescimento da produtividade por região
-                    st.warning("Navegue até a seção '1. Tendências Temporais' e analise por mesorregião.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    O Oeste Baiano apresenta a maior taxa de crescimento de produtividade para soja 
-                    (3,7% a.a. nos últimos 10 anos), seguido pelo Sudeste Mato-grossense (3,2% a.a.) 
-                    e Norte do Mato Grosso (2,9% a.a.). Estas taxas, substancialmente acima da média 
-                    nacional (1,8% a.a.), indicam potencial de valorização de terras por ganhos de 
-                    produtividade, especialmente considerando que ainda há gaps significativos em 
-                    relação às regiões mais produtivas.
-                    """)
-                    
-                with tab2:
-                    st.markdown("""
-                    **Mapeamento de Riscos Climáticos**
-                    
-                    Analisamos a volatilidade da produção relacionada a fatores climáticos para avaliar o risco de diferentes regiões.
-                    """)
-                    
-                    # Aqui iria um código combinando dados de volatilidade e correlações climáticas
-                    st.warning("Combine os dados das seções '4. Volatilidade' e '3. Correlações' para esta análise.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    As regiões do Oeste do Paraná e Triângulo Mineiro apresentam menor sensibilidade 
-                    às variações climáticas, com coeficientes de correlação entre precipitação e 
-                    rendimento abaixo de 0,4 para soja e milho. Isto indica maior resiliência dos 
-                    sistemas produtivos, possivelmente pela combinação de solos com melhor capacidade 
-                    de retenção de água e padrões pluviométricos mais estáveis. Estas características 
-                    representam menor risco para investimentos de longo prazo em terras agrícolas.
-                    """)
-                    
-                with tab3:
-                    st.markdown("""
-                    **Relação entre Rendimento e Estabilidade por Cultura e Região**
-                    
-                    Analisamos quais combinações de cultura e região oferecem o melhor equilíbrio entre alto rendimento e baixa volatilidade.
-                    """)
-                    
-                    # Aqui iria um código cruzando dados de rendimento médio e estabilidade
-                    st.warning("Combine os dados das seções '2. Comparativos Regionais' e '4. Volatilidade' para esta análise.")
-                    
-                    st.markdown("""
-                    **Interpretação:** 
-                    
-                    O milho no Oeste Paranaense apresenta a melhor combinação de alto rendimento 
-                    (10.800 kg/ha, 35% acima da média nacional) e baixa volatilidade (CV = 13%, 
-                    40% abaixo da média nacional). A soja no Norte do Rio Grande do Sul e a 
-                    cana-de-açúcar no Nordeste Paulista também mostram combinações favoráveis. 
-                    A estratégia de diversificação geográfica entre estas regiões pode 
-                    otimizar o perfil de risco-retorno de um portfolio de terras agrícolas.
-                    """)
-        
-        # Adicionar uma seção de resumo com os principais insights por perfil
-        st.markdown("### Principais Insights por Perfil de Cliente")
-        
-        # Criar um DataFrame com os insights
-        insights_df = pd.DataFrame({
-            'Perfil': [
-                "Produtor Rural", 
-                "Financeira/Seguradora", 
-                "Órgão Governamental",
-                "Empresa de Tecnologia Agrícola",
-                "Indústria de Processamento",
-                "Investidor em Terras Agrícolas"
-            ],
-            'Principais Análises': [
-                "Correlação área x rendimento, Tendências temporais, Volatilidade regional",
-                "Mapeamento de volatilidade, Correlações climáticas, Eventos extremos",
-                "Diversificação regional, Especialização produtiva, Gaps de produtividade",
-                "Regiões de baixa produtividade, Pontos de inflexão tecnológica, Sensibilidade climática",
-                "Concentração produtiva, Sazonalidade, Tendências de longo prazo",
-                "Crescimento da produtividade, Resiliência climática, Otimização de portfolio"
-            ],
-            'Indicadores-Chave': [
-                "Economias de escala, Taxa de crescimento do rendimento, Coeficiente de variação",
-                "Coeficiente de variação por região, Correlação clima x rendimento, Outliers temporais",
-                "Índice de diversificação, Índice de especialização regional (IER), Gaps de rendimento",
-                "Diferencial de produtividade, Pontos de inflexão, Correlações com variáveis climáticas",
-                "Volume de produção, Padrões sazonais, Projeções de crescimento",
-                "Taxa de crescimento da produtividade, Volatilidade histórica, Relação rendimento/risco"
-            ]
-        })
-        
-        # Exibir a tabela formatada
-        st.dataframe(
-            insights_df.set_index('Perfil').style.applymap(
-                lambda x: 'background-color: rgba(144,238,144,0.2)' if 'Produtor Rural' in x else (
-                    'background-color: rgba(173,216,230,0.2)' if 'Financeira' in x else (
-                    'background-color: rgba(255,182,193,0.2)' if 'Governo' in x else (
-                    'background-color: rgba(221,160,221,0.2)' if 'Tecnologia' in x else (
-                    'background-color: rgba(255,228,181,0.2)' if 'Processamento' in x else (
-                    'background-color: rgba(176,224,230,0.2)' if 'Investidor' in x else ''))))))
-        )
-        
-        # Adicionar um botão para navegar para a análise específica
-        st.markdown("### Explore uma Análise Específica")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            if st.button("🌱 Tendências Temporais", use_container_width=True):
-                st.session_state.pagina = "1. Tendências Temporais"
-                st.experimental_rerun()
-                
-            if st.button("📊 Correlações", use_container_width=True):
-                st.session_state.pagina = "3. Correlações"
-                st.experimental_rerun()
-                
-            if st.button("🔍 Taxonomia de Mesorregiões", use_container_width=True):
-                st.session_state.pagina = "5. Taxonomia de Mesorregiões"
-                st.experimental_rerun()
-                
-        with col2:
-            if st.button("🗺️ Comparativos Regionais", use_container_width=True):
-                st.session_state.pagina = "2. Comparativos Regionais"
-                st.experimental_rerun()
-                
-            if st.button("📈 Volatilidade", use_container_width=True):
-                st.session_state.pagina = "4. Volatilidade" 
-                st.experimental_rerun()
-                
-            if st.button("⏳ Séries Temporais", use_container_width=True):
-                st.session_state.pagina = "6. Séries Temporais"
-                st.experimental_rerun()
-                
+
         # Adicionar informação de como usar os insights
         st.markdown("""
         ---
@@ -2390,10 +2103,7 @@ with main_container:
         4. **Planejamento estratégico** - Utilize as tendências de longo prazo para alinhar suas estratégias com as transformações do setor agrícola
         
         5. **Benchmarking** - Compare o desempenho de diferentes regiões e culturas para estabelecer metas realistas de melhoria
-        
-        Para análises personalizadas ao seu negócio específico, entre em contato com nossa equipe de consultoria em dados agrícolas.
         """)
-
             
         
 # Rodapé do dashboard
