@@ -293,7 +293,7 @@ with main_container:
     if pagina == "Início":        
         st.subheader("Contexto")
         st.markdown("""
-            Este dashboard é uma análise de dados agrícolas brasileiros a nível de mesorregião. Inclui dados de produtividade, produção e área plantada as maiores culturas do país ao longo do período de 1990 a 2022, com dados meteorológicos de 2000 a 2022.
+            Este dashboard é uma análise de dados agrícolas brasileiros a nível de mesorregião. Inclui dados de produtividade, produção e área plantada as maiores culturas do país ao longo do período de 1994 a 2023, com dados meteorológicos de 2000 a 2022.
             
             Os dados foram agregados a partir das APIs do IBGE e do INMET, e foram tratados para garantir a consistência e a qualidade. O objetivo é fornecer insights sobre a evolução da agricultura brasileira, permitindo análises detalhadas por região e cultura. O caderno onde os dados foram tratados está disponível [aqui](https://github.com/luizedu91/dashboard-agro/blob/main/Safra.ipynb)
 
