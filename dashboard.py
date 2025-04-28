@@ -126,8 +126,8 @@ if pagina == "3. Correlações":
         # Create a list of available years as Python integers (not NumPy integers)
         anos_disponiveis = sorted([int(ano) for ano in dados_produto['Ano'].unique()])
         
-        # Set default year (2022 if available, otherwise the most recent year)
-        ano_padrao = 2022 if 2022 in anos_disponiveis else anos_disponiveis[-1]
+        # Set default year
+        ano_padrao = 2023 if 2023 in anos_disponiveis else anos_disponiveis[-1]
         
         # Find the index of the current year or default year
         try:
@@ -147,42 +147,57 @@ if pagina == "3. Correlações":
         
     elif modo_visualizacao == "Agregado 4 Anos":
         dados_produto = df_consolidado[df_consolidado['Produto'] == produto_correlacao]
-
         if not dados_produto.empty:
             # Ensure Ano is integer type
             dados_produto['Ano'] = dados_produto['Ano'].astype(int)
             min_ano = dados_produto['Ano'].min()
             max_ano = dados_produto['Ano'].max()
-
+            
+            # Custom period generation for 1994-2023
             periodos = []
-            if min_ano <= max_ano:
-                # Handle the first special 5-year period (e.g., 1990-1994)
-                fim_primeiro_periodo = min(min_ano + 4, max_ano)
-                periodos.append(f"{min_ano}-{fim_primeiro_periodo}")
-
-                # Start the next period after the first one
-                inicio = fim_primeiro_periodo + 1
-
-                # Loop for subsequent standard 4-year periods
-                while inicio <= max_ano:
-                    fim = min(inicio + 3, max_ano) # 4-year duration (inicio, +1, +2, +3)
-                    periodos.append(f"{inicio}-{fim}")
-                    inicio = fim + 1
-
+            
+            # First period: 5 years (1994-1998)
+            periodos.append(f"{min_ano}-{min_ano+4}")
+            
+            # Second period: 5 years (1999-2003)
+            periodos.append(f"{min_ano+5}-{min_ano+9}")
+            
+            # Remaining periods: Standard 4-year periods
+            inicio = min_ano + 10
+            while inicio <= max_ano - 3:  # Ensure we have at least 4 years for standard periods
+                fim = inicio + 3
+                periodos.append(f"{inicio}-{fim}")
+                inicio = fim + 1
+            
+            # Last period: Handle remaining years
+            if inicio <= max_ano:
+                periodos.append(f"{inicio}-{max_ano}")
+                    
             if periodos:
                 # Find current period or default to the most recent
-                atual_periodo = st.session_state.periodo_selecionado if st.session_state.periodo_selecionado in periodos else periodos[-1]
+                atual_periodo = st.session_state.periodo_selecionado if hasattr(st.session_state, 'periodo_selecionado') and st.session_state.periodo_selecionado in periodos else periodos[-1]
+                
                 try:
                     indice_periodo = periodos.index(atual_periodo)
                 except ValueError:
                     indice_periodo = len(periodos) - 1
                 
+                # Add an indicator for the most recent period
+                periodo_labels = periodos.copy()
+                if periodos[-1].endswith(str(max_ano)):
+                    periodo_labels[-1] = f"{periodos[-1]}"
+                    
                 periodo_selecionado = st.sidebar.selectbox(
                     "Selecione o período",
-                    periodos,
+                    periodo_labels,
                     index=indice_periodo,
                     key="periodo_selecionado_select"
                 )
+                
+                # Extract the actual period value without the indicator
+                if " (mais recente)" in periodo_selecionado:
+                    periodo_selecionado = periodo_selecionado.replace(" (mais recente)", "")
+                    
                 st.session_state.periodo_selecionado = periodo_selecionado
 
     # Filtro de mesorregiões com busca
@@ -1215,8 +1230,12 @@ with main_container:
         
         # Descrição da análise
         st.markdown("""
-        Esta seção realiza o agrupamento de regiões com padrões similares de produtividade
-        e classifica as mesorregiões por perfil de culturas predominantes.
+        Esta seção agrupa mesorregiões com padrões similares de produtividade e classifica-as por perfis de culturas predominantes. A análise permite:
+
+        - Identificar regiões com vocações agrícolas similares
+        - Caracterizar grupos regionais por seu desempenho relativo em diferentes culturas
+        - Visualizar espacialmente a distribuição dos clusters produtivos
+        - Para comparar culturas com rendimentos muito diferentes (como cana-de-açúcar versus grãos), utilizamos normalização por cultura, esta abordagem evidencia o perfil produtivo de cada região independentemente das diferenças naturais de rendimento entre as culturas.
         """)
         
         # Filtrar os dados para análise
@@ -1340,7 +1359,15 @@ with main_container:
             # Criar gráfico de radar para visualizar o perfil do cluster
             cluster_profile = cluster_info.loc[cluster_selecionado].reset_index()
             cluster_profile.columns = ['Produto', 'Rendimento_Medio']
-            
+
+            # Normalize each product's values relative to its maximum across all clusters
+            for produto in cluster_profile['Produto']:
+                max_val_produto = cluster_info[produto].max()
+                if max_val_produto > 0:
+                    cluster_profile.loc[cluster_profile['Produto'] == produto, 'Rendimento_Medio'] = \
+                        cluster_profile.loc[cluster_profile['Produto'] == produto, 'Rendimento_Medio'] / max_val_produto
+
+            # Create the radar chart with normalized values
             fig = px.line_polar(
                 cluster_profile,
                 r='Rendimento_Medio',
@@ -1838,7 +1865,7 @@ with main_container:
                 y='Indice_Diversificacao',
                 markers=True,
                 labels={'Ano': 'Ano', 'Indice_Diversificacao': 'Índice de Diversificação'},
-                title='Evolução da Diversificação Agrícola Nacional (1990-2022)',
+                title='Evolução da Diversificação Agrícola Nacional (1994-2023)',
                 template='plotly_white'
             )
             
@@ -2024,7 +2051,7 @@ with main_container:
                         st.markdown("""
                         **Detecção de Outliers e Eventos Extremos**
                         
-                        O rendimento do milho apresenta tendência estável de crescimento na média, crescendo de 1.400 para 4.000 kg/ha entre 1990 e 2022. No agregado, os únicos períodos de variação anormal foi entre 2015-2017, quando houve uma queda abrupta por falta de chuvas durante o desenvolvimento das lavouras. A frequência destes eventos extremos aumentará no futuro, sugerindo a necessidade de revisão nos modelos de risco.
+                        O rendimento do milho apresenta tendência estável de crescimento na média, crescendo de 1.400 para 4.000 kg/ha entre 1994 e 2023. No agregado, os únicos períodos de variação anormal foi entre 2015-2017, quando houve uma queda abrupta por falta de chuvas durante o desenvolvimento das lavouras. A frequência destes eventos extremos aumentará no futuro, sugerindo a necessidade de revisão nos modelos de risco.
                         """)
                 
                 elif perfil_cliente == "Órgão Governamental":
