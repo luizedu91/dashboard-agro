@@ -420,7 +420,7 @@ with main_container:
             y='Rendimento_KgPorHectare',
             color='Produto',
             markers=True,
-            title='Evolução do Rendimento Médio por Cultura (1990-2022)',
+            title='Evolução do Rendimento Médio por Cultura',
             labels={'Rendimento_KgPorHectare': 'Rendimento (Kg/Hectare)', 'Ano': 'Ano'},
             template='plotly_white'
         )
@@ -1865,7 +1865,7 @@ with main_container:
                 y='Indice_Diversificacao',
                 markers=True,
                 labels={'Ano': 'Ano', 'Indice_Diversificacao': 'Índice de Diversificação'},
-                title='Evolução da Diversificação Agrícola Nacional (1994-2023)',
+                title='Evolução da Diversificação Agrícola Nacional',
                 template='plotly_white'
             )
             
